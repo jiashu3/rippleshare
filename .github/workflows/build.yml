@@ -1,0 +1,58 @@
+name: Build and test RippleShare
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  core:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: swift-actions/setup-swift@v2
+        with:
+          swift-version: '6.0.3'
+      - run: swift test
+      - run: python3 -m unittest discover -s tests -v
+      - name: Exercise actual SSH upload, download and interruption recovery
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y openssh-server rsync
+          sudo mkdir -p /run/sshd
+          sudo python3 tests/ssh_integration.py
+  macos:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install test transfer engine
+        run: brew install rsync
+      - run: python3 -m unittest discover -s tests -v
+      - name: Build universal app and run Swift tests
+        run: bash scripts/build-app.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: RippleShare-macOS-universal
+          path: |
+            dist/RippleShare-0.1.0-macOS-universal.zip
+            dist/SHA256SUMS.txt
+          if-no-files-found: error
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [core, macos]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: RippleShare-macOS-universal
+          path: dist
+      - name: Publish preview release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: gh release create "$RELEASE_TAG" dist/*.zip dist/SHA256SUMS.txt --prerelease --generate-notes --title "RippleShare $RELEASE_TAG"

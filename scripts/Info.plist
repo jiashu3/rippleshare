@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>CFBundleName</key><string>RippleShare</string>
+  <key>CFBundleDisplayName</key><string>RippleShare</string>
+  <key>CFBundleIdentifier</key><string>hk.ripplelab.rippleshare</string>
+  <key>CFBundleExecutable</key><string>RippleShare</string>
+  <key>CFBundlePackageType</key><string>APPL</string>
+  <key>CFBundleShortVersionString</key><string>0.1.0</string>
+  <key>CFBundleVersion</key><string>1</string>
+  <key>CFBundleIconFile</key><string>AppIcon</string>
+  <key>LSMinimumSystemVersion</key><string>13.0</string>
+  <key>NSHighResolutionCapable</key><true/>
+  <key>NSHumanReadableCopyright</key><string>Copyright © 2026 RippleLab 涟漪工场有限公司</string>
+  <key>NSDesktopFolderUsageDescription</key><string>Browse and transfer files you select on your Desktop.</string>
+  <key>NSDocumentsFolderUsageDescription</key><string>Browse and transfer files you select in Documents.</string>
+  <key>NSDownloadsFolderUsageDescription</key><string>Save files downloaded from your server.</string>
+  <key>NSLocalNetworkUsageDescription</key><string>Connect to servers you select on your local network.</string>
+  <key>UTExportedTypeDeclarations</key><array><dict>
+    <key>UTTypeIdentifier</key><string>hk.ripplelab.rippleshare.remote-file</string>
+    <key>UTTypeDescription</key><string>RippleShare remote file</string>
+    <key>UTTypeConformsTo</key><array><string>public.data</string></array>
+  </dict></array>
+</dict></plist>
