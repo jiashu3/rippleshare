@@ -9,6 +9,16 @@ public struct EmptyReply: Decodable, Sendable {}
 public struct SSHClient: Sendable {
     public let server: Server
     public init(server: Server) { self.server = server }
+    public static func helperSource() throws -> String {
+        // SwiftPM's generated accessor has build-tree fallbacks. Resolve the app's
+        // embedded resource bundle first so downloaded apps work off the build host.
+        let embedded = Bundle.main.resourceURL?.appendingPathComponent("RippleShare_RippleCore.bundle")
+        let packaged = embedded.flatMap { Bundle(url: $0) }?.url(forResource: "remote", withExtension: "py")
+        guard let url = packaged ?? Bundle.module.url(forResource: "remote", withExtension: "py") else {
+            throw RippleError("应用缺少服务器通信资源，请重新安装。")
+        }
+        return try String(contentsOf: url, encoding: .utf8)
+    }
     public func arguments() throws -> [String] {
         try server.validate()
         var args = ["-T", "-p", String(server.port), "-o", "BatchMode=yes", "-o", "StrictHostKeyChecking=yes",
@@ -21,7 +31,7 @@ public struct SSHClient: Sendable {
     public func request<T: Decodable & Sendable>(_ request: [String: String], as type: T.Type,
                                                timeout: Double? = 60) async throws -> T {
         let data = try JSONSerialization.data(withJSONObject: request, options: [.sortedKeys])
-        let script = try String(contentsOf: Bundle.module.url(forResource: "remote", withExtension: "py")!, encoding: .utf8)
+        let script = try Self.helperSource()
         let command = "python3 -c " + Paths.quote(script) + " " + Paths.quote(data.base64EncodedString())
         let result = try await ProcessRunner.run("/usr/bin/ssh", try arguments() + [server.destination, command], timeout: timeout)
         if let reply = try? JSONDecoder().decode(Envelope<T>.self, from: Data(result.output.utf8)) {

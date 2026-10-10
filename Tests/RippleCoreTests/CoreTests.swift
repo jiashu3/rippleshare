@@ -2,6 +2,9 @@ import XCTest
 @testable import RippleCore
 
 final class CoreTests: XCTestCase {
+    func testBundledRemoteHelperIsAvailable() throws {
+        XCTAssertTrue(try SSHClient.helperSource().contains("def dispatch("))
+    }
     func testShellQuotingRoundTrip() async throws {
         let values = ["hello world", "中文文件夹", "a'b", "$(touch /tmp/never-rippleshare)", "line\nbreak", ""]
         for value in values {

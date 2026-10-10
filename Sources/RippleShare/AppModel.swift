@@ -150,9 +150,9 @@ final class AppModel: ObservableObject {
         set(job.id, .preparing, "准备传输…")
         worker = Task {
             do {
-                try await TransferEngine.run(job) { [weak self] value in
-                    Task { @MainActor in
-                        guard let self, self.activeID == job.id,
+                try await TransferEngine.run(job) { [self] value in
+                    Task { @MainActor [self] in
+                        guard self.activeID == job.id,
                               let current = self.jobs.first(where: { $0.id == job.id }), current.state.isActive else { return }
                         self.set(job.id, value.state, value.detail, save: value.state != .transferring)
                     }

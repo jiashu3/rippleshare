@@ -17,6 +17,7 @@ swift scripts/make-icon.swift dist
 iconutil -c icns dist/AppIcon.iconset -o "$app/Contents/Resources/AppIcon.icns"
 codesign --force --deep --sign - "$app"
 codesign --verify --deep --strict "$app"
+"$app/Contents/MacOS/RippleShare" --self-check
 ditto -c -k --sequesterRsrc --keepParent "$app" dist/RippleShare-0.1.0-macOS-universal.zip
 shasum -a 256 dist/RippleShare-0.1.0-macOS-universal.zip > dist/SHA256SUMS.txt
 echo "Built $app (Apple Silicon + Intel, ad-hoc signed developer preview)"

@@ -1,5 +1,6 @@
 import SwiftUI
 import AppKit
+import RippleCore
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
     var model: AppModel?
@@ -21,6 +22,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 @MainActor struct RippleShareApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
     @StateObject private var model = AppModel()
+    init() {
+        if CommandLine.arguments.contains("--self-check") {
+            do {
+                let source = try SSHClient.helperSource()
+                guard source.contains("def dispatch(") else { throw RippleError("Invalid helper resource") }
+                print("RippleShare bundle self-check passed")
+                exit(0)
+            } catch {
+                fputs(error.localizedDescription + "\n", stderr)
+                exit(1)
+            }
+        }
+    }
     var body: some Scene {
         WindowGroup {
             ContentView().environmentObject(model)

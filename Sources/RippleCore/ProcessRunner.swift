@@ -62,7 +62,18 @@ public enum ProcessRunner {
                            onOutput: (@Sendable (String) -> Void)? = nil) async throws -> CommandResult {
         let control = ProcessControl()
         return try await withTaskCancellationHandler(operation: {
-            try await Task.detached(priority: .userInitiated) {
+            try await withCheckedThrowingContinuation { continuation in
+                DispatchQueue.global(qos: .userInitiated).async {
+                    do {
+                        continuation.resume(returning: try runBlocking(executable, arguments, timeout: timeout,
+                                                                      onOutput: onOutput, control: control))
+                    } catch { continuation.resume(throwing: error) }
+                }
+            }
+        }, onCancel: { control.stop() })
+    }
+    private static func runBlocking(_ executable: String, _ arguments: [String], timeout: Double?,
+                                    onOutput: (@Sendable (String) -> Void)?, control: ProcessControl) throws -> CommandResult {
                 let process = Process()
                 process.executableURL = URL(fileURLWithPath: executable)
                 process.arguments = arguments
@@ -94,7 +105,5 @@ public enum ProcessRunner {
                 if control.didTimeout { throw RippleError("操作超时，请检查网络和服务器状态后重试。") }
                 if control.wasCancelled { throw CancellationError() }
                 return try CommandResult(status: process.terminationStatus, output: output.string(), error: errors.string())
-            }.value
-        }, onCancel: { control.stop() })
     }
 }
